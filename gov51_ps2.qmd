@@ -72,6 +72,77 @@ ggplot(ssm, aes(x = treatment, y = ssm_mean)) +
 
 ```
 
+Question 1 Part 2
+
+```{r}
+
+#filter gay_clean more
+gay_clean2 <- gay_clean %>% 
+  filter(treatment == "No Contact"| treatment == "Same-Sex Marriage Script by Gay Canvasser")
+
+#calculate Mean & SD
+summarized <- gay_clean2 %>% 
+  group_by(treatment) %>% 
+  summarize(ssm_mean2 =  mean(ssm, na.rm = TRUE),
+            ssm_sd2 = sd(ssm, na.rm = TRUE))
+print(summarized)
+
+#calculate Standardized difference in means
+#numerator
+(3.025195 - 3.042764)
+#find denominator
+1.666099^2 + 1.680540^2
+5.600101 / 2
+sqrt(2.80005)
+0.017569 / 1.673335
+
+```
+
+Q1.5. The standardized difference in means is -0.01049939. The mean and SD for each group is located above in the table. This difference is significantly below 0.25 which leads me to believe that in fact their is good balance and the two groups are very similar at baseline.
+
+```{r}
+
+#filter gay
+gay_clean3 <- gay %>% 
+  filter(study == 1, 
+        wave == 2,treatment == "No Contact"| treatment == "Same-Sex Marriage Script by Gay Canvasser")
+
+#calculate Mean & SD
+summarized2 <- gay_clean3 %>% 
+  group_by(treatment) %>% 
+  summarize(ssm_mean3 =  mean(ssm, na.rm = TRUE),
+            ssm_sd3 = sd(ssm, na.rm = TRUE))
+print(summarized2)
+
+#difference in means
+3.139489 - 3.039615
+
+```
+
+Q1.6 the difference in means here is 0.099874. Since the groups were balanced at baseline, a difference at wave 2 suggests that this difference was because of the treatment rather than any outside factors in the groups. In broader terms, the implementation of a gay canvasser had a small positive impact on support for same sex marriage in reference to the no contact group.
+
+**Question 2**
+
+```{r}
+
+#filter gay
+```
+
+```{r}
+
+#filter gay
+```
+
+```{r}
+
+#filter gay
+```
+
+```{r}
+
+#filter gay
+```
+
 ```{r}
 
 #filter gay
