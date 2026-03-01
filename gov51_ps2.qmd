@@ -125,33 +125,169 @@ Q1.6 the difference in means here is 0.099874. Since the groups were balanced at
 
 ```{r}
 
-#filter gay
+#load more data
+gayreshaped <- read.csv("Data/Raw/gayreshaped.csv")
+ccap2012 <- read.csv("Data/Raw/ccap2012.csv")
 ```
+
+Q2.1
+
+gayreshaped has 11,948 observations. Its columns are study, treatment, therm1, therm 2, therm3, and therm4.
+
+ccap2012 has 43,998 observations. Its column names are x, caseid, and gaytherm.
+
+```{r}
+#summary statistics for gayreshaped therm1
+mean(gayreshaped$therm1[gayreshaped$study == 1], na.rm = TRUE)
+median(gayreshaped$therm1[gayreshaped$study == 1], na.rm = TRUE)
+sd(gayreshaped$therm1[gayreshaped$study == 1], na.rm = TRUE)
+
+#summary statistics for ccap2012 gaytherm
+mean(ccap2012$gaytherm, na.rm = TRUE)
+median(ccap2012$gaytherm, na.rm = TRUE)
+sd(ccap2012$gaytherm, na.rm = TRUE)
+
+side_by_side <- data.frame(Dataset = c("Study 1 (therm1)", "CCAP 2012 (gaytherm)"),
+                           Mean = c(mean(gayreshaped$therm1, na.rm = TRUE),
+                                    mean(ccap2012$gaytherm, na.rm = TRUE)), 
+                           Median = c(median(gayreshaped$therm1, na.rm = TRUE),
+                                    median(ccap2012$gaytherm, na.rm = TRUE)), 
+                           SD = c(sd(gayreshaped$therm1, na.rm = TRUE),
+                                    sd(ccap2012$gaytherm, na.rm = TRUE)))
+side_by_side
+                                    
+                                    
+
+```
+
+Q2.2 From this side by side table, I can see that the mean, median, and sd of the data from gayreshpaed and CCAP2012 look very similar. In comparing the two, CCAP2012 has slightly larger values of mean, median, and SD compared to gayreshaped, but they are all very similar.
 
 ```{r}
 
-#filter gay
+#create side by side histograms
+gayreshaped_study1_therm1 <- gayreshaped %>% 
+  filter(study == 1) %>% 
+  select(therm1) %>% 
+    rename(therm = therm1) %>% 
+  mutate(source = "Lacour")
+
+
+ccap2012_gaytherm <- ccap2012 %>% 
+  filter(!is.na(gaytherm)) %>% 
+  select(gaytherm) %>% 
+  rename(therm = gaytherm) %>% 
+    mutate(source = "CCAP")
+
+
+side_by_side_data <- bind_rows(gayreshaped_study1_therm1, ccap2012_gaytherm)
+
+ggplot(side_by_side_data, aes(x = therm)) + 
+  geom_histogram(breaks = seq(0, 100, by = 5), 
+                 color = "cornflowerblue", 
+                 fill = "white") +
+    facet_wrap(~source) +
+  labs(title = "LaCour Study 1 baseline (therm1) vs the CCAP data (gaytherm)",
+       x = "Feeling Thermometer Scores (0-100)",
+       y = "Count")
+  
 ```
+
+Q2.3 I DONT KNOWW
+
+**Question 2 Part 2**
 
 ```{r}
 
-#filter gay
+#filter new data
+study1_control <- gayreshaped %>% 
+  filter(study == 1, treatment == "No Contact") %>% 
+  select(therm1, therm2)
+
+study2_control <- gayreshaped %>% 
+  filter(study == 2, treatment == "No Contact") %>% 
+  select(therm1, therm2)
+
+#calculate study 1 values
+study1_correlation <- cor(study1_control$therm1, study1_control$therm2, use = "complete.obs")
+study1_correlation
+study1_sd <- sd(study1_control$therm2 - study1_control$therm1, na.rm = TRUE)
+study1_sd
+#calculate study 2 values
+study2_correlation <- cor(study2_control$therm1, study2_control$therm2, use = "complete.obs")
+study2_correlation
+study2_sd <- sd(study2_control$therm2 - study2_control$therm1, na.rm = TRUE)
+study2_sd
+
+#put side by side
+side_by_side_results <- data.frame(Study = c("Study 1", "Study 2"),
+                                   Correlation = c(study1_correlation, study2_correlation),
+                                   StandardDeviation = c(study1_sd, study2_sd))
+side_by_side_results
 ```
+
+Q2.4 If we first look at Study 1, we will see that there is a correlation of 0.998 which is quite a bit higher than the typical for real feeling thermometer data of 0.95 to 0.97. In other words, from therm1 to therm2 participants' responses were likely very similar. Study 2's correlation, 0.973 tends to look more similar to what we would expect with the value not far outside of the 0.95 to 0.97 range. Examining the standard deviations of the within person change, we can see that study 1's standard deviation of 1.988 is quite small while study 2's 6.606 seems to be more realistic and account for within person differences. This information all leads me to believe that study 2 is likely showing a more realistic and plausible pattern.
 
 ```{r}
 
-#filter gay
+#create two side by side scatterplots
+combined_studies <- bind_rows(study1_control %>% mutate(Study = "Study1"),
+                              study2_control %>% mutate(Study = "Study2"))
+
+ggplot(combined_studies, aes(x = therm1, y = therm2)) +
+  geom_point(color = "cornflowerblue") +
+  geom_abline(slope = 1, intercept = 0) +
+  facet_wrap(~Study) +
+  labs(title = "Study 1 vs Study 2 Control Group",
+       x = "Therm 1",
+       y = "Therm 2")
 ```
+
+Q2.5 Study 2 definitely looks more like real longitudinal data. If you take a look at the right scatter plot all of the data is incredibly close to the 45 degree line and doesn't mimic the actual variation you would probably see. As a result, study 2 looks more realistic because it shows that more widespread measure of spread that study 1 lacks. Study 1 also seems to have that "t" that we talked about in lecture in the middle right by 50.
+
+**QUESTION 2.6**
+
+**Part 3**
 
 ```{r}
 
-#filter gay
+#filter gay reshaped
+gayreshaped_clean2 <- gayreshaped %>% 
+  filter(study == 2)
+
+mean(gayreshaped_clean2$therm1[gayreshaped_clean2$treatment == "No Contact"], na.rm = TRUE)
+sd(gayreshaped_clean2$therm1[gayreshaped_clean2$treatment == "No Contact"], na.rm = TRUE)
+
+
+mean(gayreshaped_clean2$therm1[gayreshaped_clean2$treatment == "Same-Sex Marriage Script by Gay Canvasser"], na.rm = TRUE)
+sd(gayreshaped_clean2$therm1[gayreshaped_clean2$treatment == "Same-Sex Marriage Script by Gay Canvasser"], na.rm = TRUE)
+
+#create side by side histograms
+histo_study1 <- gayreshaped %>% 
+  filter(study == 1) %>% 
+  select(therm1) %>% 
+  rename(therm = therm1) %>% 
+  mutate(Study = "Study1")
+
+histo_study2 <- gayreshaped %>% 
+  filter(study == 2) %>% 
+  select(therm1) %>% 
+  rename(therm = therm1) %>% 
+  mutate(Study = "Study2")
+
+combined_histo <- bind_rows(histo_study1, histo_study2)
+
+ggplot(combined_histo, aes(x = therm)) +
+  geom_histogram(breaks = seq(0, 100, by = 5),
+                 color = "cornflowerblue",
+                 fill = "white") +
+  facet_wrap(~Study) +
+  labs(title =  "Study 1 baseline (therm1) and Study 2 baseline (therm1)",
+       x = "Feeling Thermometer Scores (0-100)",
+       y = "Count")
+                 
 ```
 
-```{r}
-
-#filter gay
-```
+Q3.2 Visually it appears as though there are a number more counts observed in study 1 than in study 2. In both histograms we observe spikes at 0, 100, and around 50. These histograms look very similar to the two histograms we generated earlier in the problem set.
 
 ```{r}
 
