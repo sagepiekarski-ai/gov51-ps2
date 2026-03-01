@@ -292,14 +292,158 @@ Q3.2 Visually it appears as though there are a number more counts observed in st
 ```{r}
 
 #filter gay
+
+q3.3 <- gayreshaped %>% 
+  filter(study == 2, treatment == "No Contact" | treatment == "Same-Sex Marriage Script by Gay Canvasser") 
+
+#calculate Mean & SD
+summarized3 <- q3.3 %>% 
+  group_by(treatment) %>% 
+  summarize(q3.3_mean =  mean(therm1, na.rm = TRUE),
+            q3.3_sd = sd(therm1, na.rm = TRUE))
+print(summarized3)
+
+#calculate Standardized difference in means
+#numerator
+(59.35057 - 57.88612)
+#find denominator
+28.41578^2 + 28.69655^2
+1630.949 / 2
+sqrt(815.4745)
+1.46445 / 28.55651
+  
 ```
+
+Q3.3 The mean and standard deviations are listed in the table above. The standardized difference in means is 0.05128253. The groups do seem to be balanced with their means and SD's looking close to eachother and the standardized difference in means being low.
 
 ```{r}
 
-#filter gay
+#Q3.4
+summarized4 <- q3.3 %>% 
+  group_by(treatment) %>% 
+  summarize(q3.4_mean =  mean(therm2, na.rm = TRUE))
+print(summarized4)
+
+61.20311 - 57.63523
+
 ```
+
+Q3.4 The difference in post period means is 3.56788.
 
 ```{r}
 
-#filter gay
+#calculate the standard error
+#gay canvasser
+61.20311^2
+sum(q3.3$treatment == "Same-Sex Marriage Script by Gay Canvasser") 
+#no contact
+57.63523^2
+sum(q3.3$treatment == "No Contact")
+
+#gay canvasser
+3745.821/1238
+
+#no contact
+3321.82/1203
+
+3.025704 + 2.76128
+
+sqrt(5.786984)
+
+#calculate confidence interval
+61.20311 - 57.63523
+3.56788 + 1.96*2.405615
+3.56788 - 1.96*2.405615
 ```
+
+Q3.5 the standard error is 2.405615. The confidence interval is \[-1.147125, 8.282885\]. Yes, this confidence interval does include zero. This tells us that our output is likely not statistically significant and we may observe no correlation in our output.
+
+```{r}
+
+#calculate correlation
+study2_correlation2 <- cor(q3.3$therm1, q3.3$therm2, use = "complete.obs")
+study2_correlation2
+study2_correlation3 <- cor(q3.3$therm1, q3.3$therm3, use = "complete.obs")
+study2_correlation3
+study2_correlation4 <- cor(q3.3$therm1, q3.3$therm4, use = "complete.obs")
+study2_correlation4
+
+```
+
+Q3.6 Overtime, the calculations decay from therm1, therm2 and therm1, therm3. However, from therm1, therm3, to therm1, therm 4 the correlation actually rises a bit. All in all, observing the correlation from therm1, therm2, to therm1, therm4, the correlation does fall slightly. Ultimately, these correlations all stay fairly close together, but this tells us that in reality stability is not perfect and
+
+**Q3.7 MUST DOOOO**
+
+**Part 4**
+
+```{r}
+
+#cleandata
+q4.1 <- gayreshaped %>% 
+  filter(study == 1, treatment == "No Contact")
+  
+#Fit a linear regression
+
+fit_s1 <- lm(therm2 ~ therm1, data = q4.1)
+summary(fit_s1)
+```
+
+Q4.1 the slope, or beta1, is 0.992454. The R-squared is 0.9952 and the residual standard error is 1.976.
+
+```{r}
+
+#cleandata
+q4.2 <- gayreshaped %>% 
+  filter(study == 2, treatment == "No Contact")
+  
+#Fit a linear regression
+
+fit_s2 <- lm(therm2 ~ therm1, data = q4.2)
+summary(fit_s2)
+
+```
+
+Q4.2 the slope, or beta1, is 0.968662. The R-squared is 0.9476 and the residual standard error is 6.547. If we are examining these two in the context of fabricated data, study 1 definitely seems to be more fabricated than study 2. With a slope and r-squared value (0.992454 and 0.9952) of approximately 1, it seems likely that this data could be false. It seems as though study 2 is more of what we would expect realistic data to look like with a R-squared value and a slope value both more significantly less that one but not that far off.
+
+```{r}
+
+#cleandata
+q4.3 <- gayreshaped %>% 
+  filter(study == 2, 
+  treatment %in% c("No Contact", "Same-Sex Marriage Script by Gay Canvasser")) %>% 
+  mutate(treated = ifelse(treatment == "Same-Sex Marriage Script by Gay Canvasser", 1, 0))
+  
+#Fit a linear regression
+fit_s3 <- lm(therm2 ~ treated, data = q4.3)
+summary(fit_s3)
+
+
+
+```
+
+Q4.3 Now the slope, or beta1, is 3.5679. The standard error is 1.2423. The t-statistics is 2.872. The p-value is 0.00412. Comparing beta1 to the difference in means from question 3.4, we are reminded that the difference in means was 3.56788, or approximately the same exact value of the observed beta1 value. beta not estimates to 57.6352. We know the p-value is 0.00412, so looking at a an alpha = 0.05 level, we can conclude that the outcome is statistically significant because the p-value is less than the alpha.
+
+```{r}
+
+#Fit a linear regression
+fit_s4 <- lm(therm2 ~ treated + therm1, data = q4.3)
+summary(fit_s4)
+
+```
+
+Q4.4 The coefficient on treated is 2.458857. Its standard error is 0.341052. The t-statistic is 7.21 and its p-value is 7.76e-13. In comparison to the results from question 4.3, the beta1 coefficient did decrease by a fair amount from 3.5679 to 2.458857. The standard error did decrease quite a bit from 1.2423 to 0.341052 indicating the coeffficient estimate became more precise. Controlling for baseline attitudes definitely improves precision because by including these controls, we can account for any pre existing differences in atttidues. For instance, some people may begin super accepting of gay individuals while others may be very much against them. By accounting for where people start in terms of gay acceptance, we can more clearly see the impact of the treatment group which makes the precision of the study much more enhanced.
+
+```{r}
+
+#use predict
+q4.5 <- data.frame(treated = c(1, 0),
+                   therm1 = c(50, 50))
+
+q4.5_pv <- predict(fit_s4, newdata = q4.5)
+q4.5_pv
+
+52.47638 - 50.01752
+
+```
+
+Q4.5 The R-squared value from Q4.3 is 0.003857 and the R-squared value from question 4.4 is 0.925. Adding therm1 as in Q4.4 increases the R-squared so dramatically because the R-squared is a measure of the percent of variance explained by the model. In the first regression, the R-sqaured is lower because it suggestes there is a lot of variance not explained by the mode. In the second regression, we control for baseline attitudes, thus, the percent of variance explained by the model is significantly higher. This does indicate that a fair amount of the variation in follow-up attitudes is explained by where people started versus the treatment. The predicted difference in their wave 2 attitudes is 2.45886.
