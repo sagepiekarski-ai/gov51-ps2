@@ -41,8 +41,10 @@ gay_clean <- gay %>%
         wave == 1)
 ssm <- gay_clean %>% 
   group_by(treatment) %>% 
-  summarize(ssm_mean = mean(ssm, na.rm = TRUE))
+  summarize(ssm_mean = mean(ssm, na.rm = TRUE),
+            n = n())
 print(ssm)
+
 
 ```
 
@@ -57,7 +59,7 @@ sd <- gay_clean %>%
 print(sd)
 ```
 
-Q1.3 Yes, for the most part, the standard deviations are roughly similar across groups with the sd values ranging from 1.67 to 1.70. In a randomized experiment, standard deviations are very important because they indicate the spread of the data and to what extent values are from the mean. If the standard deviation is all relatively similar and small, then this indicated our randomized experiment is working properly and observed differences can be attributed to the treatment.
+Q1.3 Yes, for the most part, the standard deviations are roughly similar across groups with the sd values ranging from 1.68 to 1.70. In a randomized experiment, standard deviations are very important because they indicate the spread of the data and to what extent values are from the mean. If the standard deviation is all relatively similar and small, then this indicated our randomized experiment is working properly and observed differences can be attributed to the treatment.
 
 ```{r}
 
@@ -192,7 +194,7 @@ ggplot(side_by_side_data, aes(x = therm)) +
   
 ```
 
-Q2.3 I DONT KNOWW
+Q2.3 the CCAP and Lacour histograms both look pretty similar. In that way, we observe spikes in both at about 0, 50, and 100. However, there seem to be many more observations and counts taken under consideration in the CCAP data. From these histograms, it seems as though the study 1 data may not come from a different population given that the two look so similar. Accordingly, this would support the claim that study 1 data is a replication or falsified data.
 
 **Question 2 Part 2**
 
@@ -244,7 +246,7 @@ ggplot(combined_studies, aes(x = therm1, y = therm2)) +
 
 Q2.5 Study 2 definitely looks more like real longitudinal data. If you take a look at the right scatter plot all of the data is incredibly close to the 45 degree line and doesn't mimic the actual variation you would probably see. As a result, study 2 looks more realistic because it shows that more widespread measure of spread that study 1 lacks. Study 1 also seems to have that "t" that we talked about in lecture in the middle right by 50.
 
-**QUESTION 2.6**
+Q2.6 At this point, I have now found three irregularities: the baseline distributions match an existing national survey, the re-test correlations are implausibly high (Study 1), the within-person changes are implausibly small (Study 1). Together, these three findings suggest the data were fabricated rather than collected in a real experiment. For instance, study1's therm1 mean, 58.4 almost exactly matches that of the ccap at 58.7. It seems very suspicious that not just these means, but the medians and standard deviations of the two groups would be almost exactly the same. There is also the fact that the study 1 control correlation with therm 1 and therm 2 is incredibly high at 0.998 when we would expect it to be between 0.95 to 0.97 if the data was real. Finally, for the third irregularity, we observe a 1.99 standard deviation of the within person change from therm2 to therm1, which seems extremely falisfied given study 2's value of 6.61. With this information in hand, it is clear the data was falsified. A fabricator produce data with these properties because it fails to show natural variation from real participants and creates a more idealistic data set.
 
 **Part 3**
 
@@ -260,6 +262,8 @@ sd(gayreshaped_clean2$therm1[gayreshaped_clean2$treatment == "No Contact"], na.r
 
 mean(gayreshaped_clean2$therm1[gayreshaped_clean2$treatment == "Same-Sex Marriage Script by Gay Canvasser"], na.rm = TRUE)
 sd(gayreshaped_clean2$therm1[gayreshaped_clean2$treatment == "Same-Sex Marriage Script by Gay Canvasser"], na.rm = TRUE)
+
+table(gayreshaped_clean2$treatment)
 
 #create side by side histograms
 histo_study1 <- gayreshaped %>% 
@@ -286,6 +290,8 @@ ggplot(combined_histo, aes(x = therm)) +
        y = "Count")
                  
 ```
+
+Q3.1 There are 2441 observations. The mean of therm1 under no contact is 57.88612 and the standard deviation is 28.69655. On the other hand, the mean of therm1 under the treatment is 59.35057 and the standard deviation is 28.41578.
 
 Q3.2 Visually it appears as though there are a number more counts observed in study 1 than in study 2. In both histograms we observe spikes at 0, 100, and around 50. These histograms look very similar to the two histograms we generated earlier in the problem set.
 
@@ -332,47 +338,64 @@ Q3.4 The difference in post period means is 3.56788.
 
 ```{r}
 
+
+#find variance
+q3.5_stats <- q3.3 %>% 
+  group_by(treatment) %>% 
+  summarize(variance = var(therm2, na.rm = TRUE),
+            n = sum(!is.na(therm2)))
+q3.5_stats
+
+#create subsets
+control_vals <- q3.3$therm2[q3.3$treatment == "No Contact" & !is.na(q3.3$therm2)]
+treated_vals <- q3.3$therm2[q3.3$treatment == "Same-Sex Marriage Script by Gay Canvasser" & !is.na(q3.3$therm2)]
+
+# variance and n
+var_control <- var(control_vals)
+n_control <- length(control_vals)
+
+var_treated <- var(treated_vals)
+n_treated <- length(treated_vals)
+
 #calculate the standard error
-#gay canvasser
-61.20311^2
-sum(q3.3$treatment == "Same-Sex Marriage Script by Gay Canvasser") 
-#no contact
-57.63523^2
-sum(q3.3$treatment == "No Contact")
+stand_e <- sqrt(var_control/n_control + var_treated/n_treated)
+stand_e
 
-#gay canvasser
-3745.821/1238
+#diff in means
+diff_means <- mean(treated_vals) - mean(control_vals)
+diff_means
 
-#no contact
-3321.82/1203
+#construct confidence interval
+ci_low <- diff_means - 1.96*stand_e
+ci_up <- diff_means + 1.96*stand_e
 
-3.025704 + 2.76128
+ci_low
+ci_up
 
-sqrt(5.786984)
 
-#calculate confidence interval
-61.20311 - 57.63523
-3.56788 + 1.96*2.405615
-3.56788 - 1.96*2.405615
 ```
 
-Q3.5 the standard error is 2.405615. The confidence interval is \[-1.147125, 8.282885\]. Yes, this confidence interval does include zero. This tells us that our output is likely not statistically significant and we may observe no correlation in our output.
+Q3.5 the standard error is 1.242138. The confidence interval is \[1.13, 6.00\]. No, this confidence interval does include zero. If it did, our output would likely not be statistically significant and we may observe no correlation in our output. However, given this confidence interval, it is likely that the mean scores for the treatment and control group do differ significantly following the conversations. Put more simply, the treatment, exposure to a gay canvasser had an effect on therm2 relative to the control group.
 
 ```{r}
 
+q3.6 <- gayreshaped %>% 
+  filter(study == 2, treatment == "No Contact")
+  
 #calculate correlation
-study2_correlation2 <- cor(q3.3$therm1, q3.3$therm2, use = "complete.obs")
+study2_correlation2 <- cor(q3.6$therm1, q3.6$therm2, use = "complete.obs")
 study2_correlation2
-study2_correlation3 <- cor(q3.3$therm1, q3.3$therm3, use = "complete.obs")
+study2_correlation3 <- cor(q3.6$therm1, q3.6$therm3, use = "complete.obs")
 study2_correlation3
-study2_correlation4 <- cor(q3.3$therm1, q3.3$therm4, use = "complete.obs")
+study2_correlation4 <- cor(q3.6$therm1, q3.6$therm4, use = "complete.obs")
 study2_correlation4
 
 ```
 
-Q3.6 Overtime, the calculations decay from therm1, therm2 and therm1, therm3. However, from therm1, therm3, to therm1, therm 4 the correlation actually rises a bit. All in all, observing the correlation from therm1, therm2, to therm1, therm4, the correlation does fall slightly. Ultimately, these correlations all stay fairly close together, but this tells us that in reality stability is not perfect and
+Q3.6 Overtime, the correlation decays with baseline therm1 from therm2 to therm3. However, with baseline therm1, from therm3 to therm 4, the correlation actually rises a bit. All in all, observing the correlation with baseline therm1 from therm2 to therm4, the correlation does fall just ever so slightly. Ultimately, these correlations all stay fairly close together, but this tells us that in reality stability is not perfect and real survey measurements will naturally vary a bit across time or therms in this instance.
 
-**Q3.7 MUST DOOOO**
+**Q3.7** Study 2’s data differs from Study 1’s data in a myriad of ways which i will explore here more thoroughly. One of the most telling statistics demonstrating this is the correlation between therm1 and therm2, which we found to be 0.998 in study 1 and 0.973 in study 2. With realistic real data, we would expect this value to lie near 0.95 to 0.97, so study 1's correlation is just drastically large. Another problem is that in study 1 we fail to see any realistic amount of variation with the standard deviation of the within-person change fromt therm2 to therm1 being only 1.99 in study 1 and 6.61 in study two. Study two's value seems highly more likely because we owuld expect participants' responses to vary as normal people are not monotonous or predictable. From study 2, we were able to observe how the treatment effects were smaller and messier than the fabricated ones. This is important because when we are deploying a treatment on real people, no situation is exactly the same and we would expect there to be a sense of messiness and lack of uniformity in the data to some extent. Simple measurement tools (mean, SD, histograms, correlations) play a huge role in detecting the fraud from this study. They allow us to visually see how the study and ccap measures mirrored each other almost exactly and gave us a visual respresentation of problem in our data probably the most telling of which was question 2.5s histograms that illuminated the data's t when plotted that would not be present in real data.
+
 
 **Part 4**
 
@@ -421,7 +444,7 @@ summary(fit_s3)
 
 ```
 
-Q4.3 Now the slope, or beta1, is 3.5679. The standard error is 1.2423. The t-statistics is 2.872. The p-value is 0.00412. Comparing beta1 to the difference in means from question 3.4, we are reminded that the difference in means was 3.56788, or approximately the same exact value of the observed beta1 value. beta not estimates to 57.6352. We know the p-value is 0.00412, so looking at a an alpha = 0.05 level, we can conclude that the outcome is statistically significant because the p-value is less than the alpha.
+Q4.3 Now the slope, or beta1 hat, is 3.5679. The standard error is 1.2423. The t-statistics is 2.872. The p-value is 0.00412. Comparing beta1 to the difference in means from question 3.4, we are reminded that the difference in means was 3.56788, or approximately the same exact value of the observed beta1 value. beta not estimates to 57.6352. We know the p-value is 0.00412, so looking at a an alpha = 0.05 level, we can conclude that the outcome is statistically significant because the p-value is less than the alpha.
 
 ```{r}
 
@@ -429,9 +452,14 @@ Q4.3 Now the slope, or beta1, is 3.5679. The standard error is 1.2423. The t-sta
 fit_s4 <- lm(therm2 ~ treated + therm1, data = q4.3)
 summary(fit_s4)
 
+#calculate changes
+1.2423 - 0.341052
+0.901248/1.2423
+
+0.7254673*100
 ```
 
-Q4.4 The coefficient on treated is 2.458857. Its standard error is 0.341052. The t-statistic is 7.21 and its p-value is 7.76e-13. In comparison to the results from question 4.3, the beta1 coefficient did decrease by a fair amount from 3.5679 to 2.458857. The standard error did decrease quite a bit from 1.2423 to 0.341052 indicating the coeffficient estimate became more precise. Controlling for baseline attitudes definitely improves precision because by including these controls, we can account for any pre existing differences in atttidues. For instance, some people may begin super accepting of gay individuals while others may be very much against them. By accounting for where people start in terms of gay acceptance, we can more clearly see the impact of the treatment group which makes the precision of the study much more enhanced.
+Q4.4 The coefficient on treated is 2.458857. Its standard error is 0.341052. The t-statistic is 7.21 and its p-value is 7.76e-13. In comparison to the results from question 4.3, the beta1 coefficient did decrease by a fair amount from 3.5679 to 2.458857. The standard error did decrease quite a bit from 1.2423 to 0.341052 indicating the coeffficient estimate became more precise. Controlling for baseline attitudes definitely improves precision because by including these controls, we can account for any pre existing differences in atttidues. For instance, some people may begin super accepting of gay individuals while others may be very much against them. By accounting for where people start in terms of gay acceptance, we can more clearly see the impact of the treatment group which makes the precision of the study much more enhanced. Ultimately, the percentage reduction of standard error is 73%
 
 ```{r}
 
